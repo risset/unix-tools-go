@@ -3,11 +3,9 @@ package xargs
 import (
 	"bufio"
 	"bytes"
-	"context"
 	"fmt"
 	"io"
 	"os/exec"
-	"sync"
 )
 
 type Xargs struct {
@@ -15,17 +13,11 @@ type Xargs struct {
 	Stdout io.Writer
 	Stderr io.Writer
 
-	// The number of workers to execute commands in parallel with.
-	NumWorkers int
-
 	// Whether or not to split input on null-separator (e.g., for usage with find -print0)
 	Null bool
 }
 
-func (x *Xargs) Run(ctx context.Context, command string, args ...string) {
-	wg := sync.WaitGroup{}
-	tokens := make(chan string, x.NumWorkers)
-	ctx, cancel := context.WithCancel(ctx)
+func (x *Xargs) Run(command string, args ...string) {
 	scanner := bufio.NewScanner(x.Stdin)
 	split := bufio.ScanWords
 	if x.Null {
@@ -33,42 +25,22 @@ func (x *Xargs) Run(ctx context.Context, command string, args ...string) {
 	}
 	scanner.Split(split)
 
-	// create workers to run commands
-	go func() {
-		for range x.NumWorkers {
-			go func() {
-				for token := range tokens {
-					combinedArgs := append(args, token)
-
-					cmd := exec.Command(command, combinedArgs...)
-					cmd.Stdin = x.Stdin
-					cmd.Stdout = x.Stdout
-					cmd.Stderr = x.Stderr
-
-					if err := cmd.Run(); err != nil {
-						fmt.Fprintf(x.Stderr, "error running command: %v\n", err)
-					}
-
-					wg.Done()
-				}
-
-			}()
-		}
-	}()
-
-	// tokenize input
 	for scanner.Scan() {
-		wg.Add(1)
-		tokens <- scanner.Text()
+		combinedArgs := append(args, scanner.Text())
+
+		cmd := exec.Command(command, combinedArgs...)
+		cmd.Stdin = x.Stdin
+		cmd.Stdout = x.Stdout
+		cmd.Stderr = x.Stderr
+
+		if err := cmd.Run(); err != nil {
+			fmt.Fprintln(x.Stderr, err)
+		}
 	}
 
-	go func() {
-		wg.Wait()
-		close(tokens)
-		cancel()
-	}()
-
-	<-ctx.Done()
+	if scanner.Err() != nil {
+		fmt.Fprintln(x.Stderr, scanner.Err())
+	}
 }
 
 // splitAtNull is a bufio.SplitFunc that splits at null characters

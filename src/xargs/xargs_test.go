@@ -2,7 +2,6 @@ package xargs
 
 import (
 	"bytes"
-	"context"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -13,7 +12,6 @@ func TestRun(t *testing.T) {
 		Stdin          string
 		ExpectedStdout string
 		ExpectedStderr string
-		NumWorkers     int
 		Null           bool
 		Command        string
 		Args           []string
@@ -21,7 +19,6 @@ func TestRun(t *testing.T) {
 		"echo with no args": {
 			Command:        "echo",
 			Args:           []string{},
-			NumWorkers:     1,
 			Stdin:          "foo bar",
 			ExpectedStdout: "foo\nbar\n",
 		},
@@ -29,7 +26,6 @@ func TestRun(t *testing.T) {
 		"echo with args": {
 			Command:        "echo",
 			Args:           []string{"baz"},
-			NumWorkers:     1,
 			Stdin:          "foo bar",
 			ExpectedStdout: "baz foo\nbaz bar\n",
 		},
@@ -40,19 +36,16 @@ func TestRun(t *testing.T) {
 			stderrBuf := bytes.Buffer{}
 
 			x := Xargs{
-				Stdin:      stdinBuf,
-				Stdout:     &stdoutBuf,
-				Stderr:     &stderrBuf,
-				NumWorkers: tc.NumWorkers,
-				Null:       tc.Null,
+				Stdin:  stdinBuf,
+				Stdout: &stdoutBuf,
+				Stderr: &stderrBuf,
+				Null:   tc.Null,
 			}
 
-			ctx := context.Background()
-			x.Run(ctx, tc.Command, tc.Args...)
+			x.Run(tc.Command, tc.Args...)
 
 			assert.Equal(t, tc.ExpectedStdout, stdoutBuf.String())
-			assert.Equal(t, tc.ExpectedStdout, stdoutBuf.String())
+			assert.Equal(t, tc.ExpectedStderr, stderrBuf.String())
 		})
 	}
-
 }

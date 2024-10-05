@@ -11,5 +11,4 @@ Simple Go implementations of classic Unix shell utilities.
 - has `-0` flag for usage with xargs (separate matches with null-separator)
 
 ### xargs
-- always executes commands in parallel, number of workers controlled by `-w` flag
 - has `-0` flag for usage with find (split input at null-separator)
