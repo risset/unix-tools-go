@@ -29,6 +29,14 @@ func TestRun(t *testing.T) {
 			Stdin:          "foo bar",
 			ExpectedStdout: "baz foo\nbaz bar\n",
 		},
+
+		"handle null-separated input": {
+			Command:        "echo",
+			Args:           []string{"baz"},
+			Stdin:          "foo\x00bar",
+			Null:           true,
+			ExpectedStdout: "baz foo\nbaz bar\n",
+		},
 	} {
 		t.Run(name, func(t *testing.T) {
 			stdinBuf := bytes.NewBufferString(tc.Stdin)
