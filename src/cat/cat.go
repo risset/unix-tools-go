@@ -12,15 +12,15 @@ type Cat struct {
 	Stderr io.Writer
 }
 
-func (c *Cat) Run(paths []string) {
-	if len(paths) == 0 {
+func (c *Cat) Run(files []string) {
+	if len(files) == 0 {
 		_, err := io.Copy(c.Stdout, c.Stdin)
 		if err != nil {
 			fmt.Fprintln(c.Stderr, err)
 		}
 	}
 
-	for _, path := range paths {
+	for _, path := range files {
 		switch path {
 		case "-":
 			_, err := io.Copy(c.Stdout, c.Stdin)
