@@ -4,6 +4,8 @@ import (
 	"bytes"
 	"context"
 	"testing"
+
+	"github.com/stretchr/testify/assert"
 )
 
 func TestRun(t *testing.T) {
@@ -48,13 +50,8 @@ func TestRun(t *testing.T) {
 			ctx := context.Background()
 			x.Run(ctx, tc.Command, tc.Args...)
 
-			if got, want := stdoutBuf.String(), tc.ExpectedStdout; got != want {
-				t.Errorf("got %s, want %s", got, want)
-			}
-
-			if got, want := stderrBuf.String(), tc.ExpectedStderr; got != want {
-				t.Errorf("got %s, want %s", got, want)
-			}
+			assert.Equal(t, tc.ExpectedStdout, stdoutBuf.String())
+			assert.Equal(t, tc.ExpectedStdout, stdoutBuf.String())
 		})
 	}
 
