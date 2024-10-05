@@ -9,6 +9,9 @@ all: $(BINS)
 $(BINS):
 	go build -o $(BIN_DIR)/$@ $(CMD_DIR)/$@
 
+test:
+	go test -v ./...
+
 cover:
 	go test -coverprofile=coverage.out ./...
 	go tool cover -html=coverage.out
