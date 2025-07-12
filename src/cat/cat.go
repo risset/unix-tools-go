@@ -29,17 +29,19 @@ func (c *Cat) Run(files []string) {
 			}
 
 		default:
-			file, err := os.Open(path)
-			if err != nil {
-				fmt.Fprintln(c.Stderr, err)
-				continue
-			}
-			defer file.Close()
+			func() {
+				file, err := os.Open(path)
+				if err != nil {
+					fmt.Fprintln(c.Stderr, err)
+					return
+				}
+				defer file.Close()
 
-			_, err = io.Copy(c.Stdout, file)
-			if err != nil {
-				fmt.Fprintln(c.Stderr, err)
-			}
+				_, err = io.Copy(c.Stdout, file)
+				if err != nil {
+					fmt.Fprintln(c.Stderr, err)
+				}
+			}()
 		}
 	}
 }
