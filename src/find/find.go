@@ -2,6 +2,7 @@ package find
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"io"
 	"io/fs"
@@ -26,6 +27,15 @@ type Find struct {
 
 // Run executes the find command.
 func (f *Find) Run(ctx context.Context) error {
+	if f.Dir == "" {
+		return errors.New("directory is required")
+	}
+	if f.Stdout == nil {
+		f.Stdout = os.Stdout
+	}
+	if f.Stderr == nil {
+		f.Stdout = os.Stderr
+	}
 	if f.Separator == "" {
 		f.Separator = "\n"
 	}
