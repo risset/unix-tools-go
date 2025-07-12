@@ -34,6 +34,7 @@ func (c *Cat) Run(files []string) {
 				fmt.Fprintln(c.Stderr, err)
 				continue
 			}
+			defer file.Close()
 
 			_, err = io.Copy(c.Stdout, file)
 			if err != nil {
