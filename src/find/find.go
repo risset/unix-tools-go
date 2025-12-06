@@ -79,7 +79,7 @@ func walk(dir string) (<-chan string, <-chan error) {
 		defer close(paths)
 
 		err := filepath.WalkDir(dir, func(path string, d fs.DirEntry, err error) error {
-			if dir != "" && dir[:2] == "./" && path != dir {
+			if dir != "" && dir[:1] == "." && path != dir {
 				path = "./" + path
 			}
 
