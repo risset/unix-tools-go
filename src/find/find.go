@@ -34,7 +34,7 @@ func (f *Find) Run(ctx context.Context) error {
 		f.Stdout = os.Stdout
 	}
 	if f.Stderr == nil {
-		f.Stdout = os.Stderr
+		f.Stderr = os.Stderr
 	}
 	if f.Separator == "" {
 		f.Separator = "\n"
