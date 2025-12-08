@@ -40,7 +40,7 @@ func (f *Find) Run(ctx context.Context) error {
 		f.Separator = "\n"
 	}
 
-	paths, errs := walk(f.Dir)
+	paths, errs := walk(ctx, f.Dir)
 	if f.Pattern != "" {
 		re, err := regexp.Compile(f.Pattern)
 		if err != nil {
@@ -70,13 +70,14 @@ func (f *Find) Run(ctx context.Context) error {
 	}
 }
 
-// walk does a recursive walk over the given directory
-func walk(dir string) (<-chan string, <-chan error) {
+// walk does a recursive walk over the given directory.
+func walk(ctx context.Context, dir string) (<-chan string, <-chan error) {
 	paths := make(chan string)
-	errs := make(chan error)
+	errs := make(chan error, 1)
 
 	go func() {
 		defer close(paths)
+		defer close(errs)
 
 		err := filepath.WalkDir(dir, func(path string, d fs.DirEntry, err error) error {
 			if dir != "" && dir[:1] == "." && path != dir {
@@ -84,7 +85,11 @@ func walk(dir string) (<-chan string, <-chan error) {
 			}
 
 			if err == nil {
-				paths <- path
+				select {
+				case <-ctx.Done():
+					return ctx.Err()
+				case paths <- path:
+				}
 			}
 
 			return err
